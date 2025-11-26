@@ -18,7 +18,10 @@ async function main() {
   await pool.query("CREATE EXTENSION IF NOT EXISTS vector");
 
   console.log("Running migrations...");
-  await migrate(db, { migrationsFolder: "./src/db/migrations" });
+  const migrationsFolder = process.env.NODE_ENV === "production"
+    ? "./dist/db/migrations"
+    : "./src/db/migrations";
+  await migrate(db, { migrationsFolder });
 
   console.log("Creating vector indexes (HNSW)...");
   // Create HNSW indexes - better than IVFFlat for smaller datasets

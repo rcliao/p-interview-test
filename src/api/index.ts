@@ -24,9 +24,10 @@ app.get("/api/health", (c) => {
   return c.json({ status: "ok", timestamp: new Date().toISOString() });
 });
 
-// Serve static files (UI)
-app.use("/", serveStatic({ root: "./src/web" }));
-app.get("/", serveStatic({ path: "./src/web/index.html" }));
+// Serve static files (UI) - use dist/web in production, src/web in development
+const webRoot = process.env.NODE_ENV === "production" ? "./dist/web" : "./src/web";
+app.use("/", serveStatic({ root: webRoot }));
+app.get("/", serveStatic({ path: `${webRoot}/index.html` }));
 
 // Start server
 const port = parseInt(process.env.PORT || "3000");

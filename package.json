@@ -3,12 +3,17 @@
   "version": "1.0.0",
   "description": "AI-powered public sector opportunity finder for service providers",
   "type": "module",
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "scripts": {
     "dev": "tsx watch src/api/index.ts",
-    "build": "tsc",
+    "build": "tsc && npm run copy:static",
+    "copy:static": "cp -r src/web dist/web && cp -r src/db/migrations dist/db/migrations",
     "start": "node dist/api/index.js",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx src/db/migrate.ts",
+    "db:migrate:prod": "node dist/db/migrate.js",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
     "ingest": "tsx src/scripts/ingest.ts",
