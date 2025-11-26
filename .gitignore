@@ -1,0 +1,42 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# TypeScript
+*.tsbuildinfo
+
+# Drizzle
+drizzle/meta/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# Playwright
+playwright-report/
+test-results/
+playwright/.cache/
+
+# Private docs (not for public repo)
+docs/req.md
+docs/req-2.md
+README.md
+data/

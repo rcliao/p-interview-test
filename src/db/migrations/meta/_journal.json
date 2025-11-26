@@ -1,0 +1,20 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1764110350498,
+      "tag": "0000_blushing_stellaris",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1764110400000,
+      "tag": "0001_add_hnsw_indexes",
+      "breakpoints": true
+    }
+  ]
+}

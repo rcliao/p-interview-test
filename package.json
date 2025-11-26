@@ -1,0 +1,36 @@
+{
+  "name": "public-sector-intelligence",
+  "version": "1.0.0",
+  "description": "AI-powered public sector opportunity finder for service providers",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/api/index.ts",
+    "build": "tsc",
+    "start": "node dist/api/index.js",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "tsx src/db/migrate.ts",
+    "db:push": "drizzle-kit push",
+    "db:studio": "drizzle-kit studio",
+    "ingest": "tsx src/scripts/ingest.ts",
+    "scrape": "tsx src/scripts/scrape.ts"
+  },
+  "dependencies": {
+    "@hono/node-server": "^1.13.7",
+    "@hono/zod-validator": "^0.4.2",
+    "dotenv": "^17.2.3",
+    "drizzle-orm": "^0.38.3",
+    "gpt-tokenizer": "^2.8.1",
+    "hono": "^4.6.12",
+    "openai": "^4.77.0",
+    "pg": "^8.13.1",
+    "playwright": "^1.57.0",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "@types/pg": "^8.11.10",
+    "drizzle-kit": "^0.30.1",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  }
+}

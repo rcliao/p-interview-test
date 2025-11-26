@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Public Sector Intelligence</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <style>
+    .view-container { height: calc(100vh - 140px); }
+    .typing-indicator span {
+      animation: bounce 1.4s infinite ease-in-out;
+    }
+    .typing-indicator span:nth-child(1) { animation-delay: -0.32s; }
+    .typing-indicator span:nth-child(2) { animation-delay: -0.16s; }
+    @keyframes bounce {
+      0%, 80%, 100% { transform: scale(0); }
+      40% { transform: scale(1); }
+    }
+    .prose h1 { font-size: 1.5rem; font-weight: bold; margin: 1rem 0 0.5rem; }
+    .prose h2 { font-size: 1.25rem; font-weight: bold; margin: 1rem 0 0.5rem; }
+    .prose h3 { font-size: 1.1rem; font-weight: 600; margin: 0.75rem 0 0.25rem; }
+    .prose ul { list-style: disc; margin-left: 1.5rem; margin-bottom: 0.5rem; }
+    .prose ol { list-style: decimal; margin-left: 1.5rem; margin-bottom: 0.5rem; }
+    .prose p { margin-bottom: 0.5rem; }
+    .prose code { background: #f3f4f6; padding: 0.125rem 0.25rem; border-radius: 0.25rem; font-size: 0.875rem; }
+    .prose pre { background: #1f2937; color: #f9fafb; padding: 1rem; border-radius: 0.5rem; overflow-x: auto; margin: 0.5rem 0; }
+    .card-hover:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); transition: all 0.2s; }
+    .tab-active { border-bottom: 2px solid #3b82f6; color: #3b82f6; }
+    .phase-badge { font-size: 0.75rem; padding: 0.25rem 0.5rem; border-radius: 9999px; }
+    .entity-type-city { background: #dbeafe; color: #1e40af; }
+    .entity-type-county { background: #fef3c7; color: #92400e; }
+    .entity-type-school_district { background: #d1fae5; color: #065f46; }
+    .entity-type-special_district { background: #ede9fe; color: #5b21b6; }
+    .entity-type-university { background: #fce7f3; color: #9d174d; }
+    .entity-type-other { background: #f3f4f6; color: #374151; }
+  </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+  <!-- Header -->
+  <header class="bg-white border-b border-gray-200 px-6 py-4">
+    <div class="max-w-7xl mx-auto flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="text-2xl">🏛️</div>
+        <div>
+          <h1 class="text-xl font-bold text-gray-900">Public Sector Intelligence</h1>
+          <p class="text-sm text-gray-500">Find government opportunities faster</p>
+        </div>
+      </div>
+      <div class="text-sm text-gray-500">
+        Powered by Eric
+      </div>
+    </div>
+  </header>
+
+  <!-- Navigation Tabs -->
+  <nav class="bg-white border-b border-gray-200 px-6">
+    <div class="max-w-7xl mx-auto flex gap-6">
+      <button onclick="showView('chat')" id="tab-chat" class="py-3 px-1 text-sm font-medium text-gray-600 hover:text-gray-900 tab-active">
+        💬 Chat
+      </button>
+      <button onclick="showView('entities')" id="tab-entities" class="py-3 px-1 text-sm font-medium text-gray-600 hover:text-gray-900">
+        🏢 Entities
+      </button>
+      <button onclick="showView('projects')" id="tab-projects" class="py-3 px-1 text-sm font-medium text-gray-600 hover:text-gray-900">
+        📋 Projects
+      </button>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="max-w-7xl mx-auto px-6 py-4">
+
+    <!-- Chat View -->
+    <div id="view-chat" class="view">
+      <div class="view-container overflow-y-auto space-y-4 pb-4" id="chatContainer">
+        <!-- Welcome Message -->
+        <div class="bg-white rounded-lg border border-gray-200 p-6">
+          <h2 class="text-lg font-semibold text-gray-900 mb-2">Welcome! 👋</h2>
+          <p class="text-gray-600 mb-4">
+            I can help you discover public sector opportunities from government documents. Ask me about:
+          </p>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <button onclick="askQuestion('Show me all projects in the pipeline by phase')" class="text-left p-3 bg-blue-50 hover:bg-blue-100 rounded-lg text-sm text-blue-700 border border-blue-200">
+              📊 Show me all projects in the pipeline by phase
+            </button>
+            <button onclick="askQuestion('What technology opportunities exist in school districts?')" class="text-left p-3 bg-green-50 hover:bg-green-100 rounded-lg text-sm text-green-700 border border-green-200">
+              💻 What technology opportunities exist in school districts?
+            </button>
+            <button onclick="askQuestion('Which entities have budget allocations for infrastructure?')" class="text-left p-3 bg-purple-50 hover:bg-purple-100 rounded-lg text-sm text-purple-700 border border-purple-200">
+              🏗️ Which entities have infrastructure budgets?
+            </button>
+            <button onclick="askQuestion('What RFPs are currently open?')" class="text-left p-3 bg-amber-50 hover:bg-amber-100 rounded-lg text-sm text-amber-700 border border-amber-200">
+              📋 What RFPs are currently open?
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Input Area -->
+      <div class="bg-white rounded-lg border border-gray-200 p-4 mt-4">
+        <form onsubmit="sendMessage(event)" class="flex gap-3">
+          <input type="text" id="messageInput" placeholder="Ask about public sector opportunities..."
+            class="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+            autocomplete="off" />
+          <button type="submit" id="sendButton"
+            class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium disabled:opacity-50 disabled:cursor-not-allowed">
+            Send
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Entities View -->
+    <div id="view-entities" class="view hidden">
+      <div class="view-container overflow-y-auto">
+        <!-- Entity List -->
+        <div id="entitiesList" class="space-y-3">
+          <div class="text-center py-8 text-gray-500">Loading entities...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Entity Detail View -->
+    <div id="view-entity-detail" class="view hidden">
+      <div class="view-container overflow-y-auto">
+        <button onclick="showView('entities')" class="mb-4 text-blue-600 hover:text-blue-800 text-sm flex items-center gap-1">
+          ← Back to Entities
+        </button>
+        <div id="entityDetail">
+          <div class="text-center py-8 text-gray-500">Loading...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Projects View -->
+    <div id="view-projects" class="view hidden">
+      <div class="view-container overflow-y-auto">
+        <!-- Filters -->
+        <div class="bg-white rounded-lg border border-gray-200 p-4 mb-4">
+          <div class="flex flex-wrap gap-4 items-center">
+            <div>
+              <label class="text-sm text-gray-600 mr-2">Phase:</label>
+              <select id="projectPhaseFilter" onchange="loadProjects()" class="border border-gray-300 rounded px-3 py-1 text-sm">
+                <option value="">All Phases</option>
+                <option value="strategy">🎯 Strategy</option>
+                <option value="budget">💰 Budget</option>
+                <option value="contacts">👤 Contacts</option>
+                <option value="rfp_open">📋 RFP Open</option>
+                <option value="awarded">✅ Awarded</option>
+                <option value="in_progress">🔄 In Progress</option>
+              </select>
+            </div>
+            <div id="projectStats" class="ml-auto text-sm text-gray-500"></div>
+          </div>
+        </div>
+        <!-- Projects List -->
+        <div id="projectsList" class="space-y-3">
+          <div class="text-center py-8 text-gray-500">Loading projects...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Project Detail View -->
+    <div id="view-project-detail" class="view hidden">
+      <div class="view-container overflow-y-auto">
+        <button onclick="showView('projects')" class="mb-4 text-blue-600 hover:text-blue-800 text-sm flex items-center gap-1">
+          ← Back to Projects
+        </button>
+        <div id="projectDetail">
+          <div class="text-center py-8 text-gray-500">Loading...</div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <script>
+    // View management
+    function showView(viewName) {
+      // Hide all views
+      document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
+      document.querySelectorAll('[id^="tab-"]').forEach(t => t.classList.remove('tab-active'));
+
+      // Show selected view
+      document.getElementById('view-' + viewName).classList.remove('hidden');
+      const tab = document.getElementById('tab-' + viewName);
+      if (tab) tab.classList.add('tab-active');
+
+      // Load data if needed
+      if (viewName === 'entities') loadEntities();
+      if (viewName === 'projects') loadProjects();
+    }
+
+    // Entity type badge
+    function getEntityTypeBadge(type) {
+      const labels = {
+        city: '🏙️ City',
+        county: '🗺️ County',
+        school_district: '🏫 School District',
+        special_district: '⚡ Special District',
+        university: '🎓 University',
+        other: '📍 Other'
+      };
+      return `<span class="phase-badge entity-type-${type || 'other'}">${labels[type] || labels.other}</span>`;
+    }
+
+    // Phase info
+    const phaseInfo = {
+      strategy: { emoji: '🎯', label: 'Strategy', color: 'bg-blue-100 text-blue-800' },
+      budget: { emoji: '💰', label: 'Budget', color: 'bg-green-100 text-green-800' },
+      contacts: { emoji: '👤', label: 'Contacts', color: 'bg-purple-100 text-purple-800' },
+      rfp_open: { emoji: '📋', label: 'RFP Open', color: 'bg-amber-100 text-amber-800' },
+      awarded: { emoji: '✅', label: 'Awarded', color: 'bg-emerald-100 text-emerald-800' },
+      in_progress: { emoji: '🔄', label: 'In Progress', color: 'bg-cyan-100 text-cyan-800' }
+    };
+
+    function getPhaseBadge(phase) {
+      const info = phaseInfo[phase] || { emoji: '❓', label: phase, color: 'bg-gray-100 text-gray-800' };
+      return `<span class="phase-badge ${info.color}">${info.emoji} ${info.label}</span>`;
+    }
+
+    // Load Entities
+    async function loadEntities() {
+      try {
+        const response = await fetch('/api/search/entities');
+        const data = await response.json();
+
+        if (data.entities.length === 0) {
+          document.getElementById('entitiesList').innerHTML = `
+            <div class="text-center py-8 text-gray-500">No entities found. Run the scraper or ingest command first.</div>
+          `;
+          return;
+        }
+
+        const html = data.entities.map(e => `
+          <div onclick="loadEntityDetail('${e.id}')" class="bg-white rounded-lg border border-gray-200 p-4 cursor-pointer card-hover">
+            <div class="flex items-start justify-between">
+              <div class="flex-1">
+                <div class="flex items-center gap-2 mb-1">
+                  <h3 class="font-semibold text-gray-900">${e.name || e.id}</h3>
+                  ${getEntityTypeBadge(e.type)}
+                  ${e.state ? `<span class="text-xs text-gray-500">${e.state}</span>` : ''}
+                </div>
+                ${e.website ? `<a href="${e.website}" target="_blank" onclick="event.stopPropagation()" class="text-sm text-blue-600 hover:underline">${e.website}</a>` : ''}
+              </div>
+              <div class="text-right text-sm">
+                <div class="text-gray-600"><span class="font-medium">${e.documentCount}</span> docs</div>
+                <div class="text-gray-600"><span class="font-medium">${e.projectCount}</span> projects</div>
+              </div>
+            </div>
+          </div>
+        `).join('');
+
+        document.getElementById('entitiesList').innerHTML = html;
+      } catch (error) {
+        document.getElementById('entitiesList').innerHTML = `
+          <div class="text-center py-8 text-red-500">Failed to load entities</div>
+        `;
+      }
+    }
+
+    // Load Entity Detail
+    async function loadEntityDetail(entityId) {
+      showView('entity-detail');
+      document.getElementById('entityDetail').innerHTML = `<div class="text-center py-8 text-gray-500">Loading...</div>`;
+
+      try {
+        const response = await fetch('/api/search/entities/' + entityId);
+        const data = await response.json();
+
+        const e = data.entity;
+        let html = `
+          <div class="bg-white rounded-lg border border-gray-200 p-6 mb-6">
+            <div class="flex items-start justify-between mb-4">
+              <div>
+                <h2 class="text-2xl font-bold text-gray-900 mb-2">${e.name || e.id}</h2>
+                <div class="flex items-center gap-2">
+                  ${getEntityTypeBadge(e.type)}
+                  ${e.state ? `<span class="text-sm text-gray-500">${e.state}</span>` : ''}
+                </div>
+              </div>
+              ${e.website ? `<a href="${e.website}" target="_blank" class="text-blue-600 hover:underline">Visit Website ↗</a>` : ''}
+            </div>
+          </div>
+
+          <!-- Documents Section -->
+          <div class="mb-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-3">📄 Documents (${data.documents.length})</h3>
+            ${data.documents.length > 0 ? `
+              <div class="space-y-2">
+                ${data.documents.map(d => `
+                  <div class="bg-white rounded-lg border border-gray-200 p-4">
+                    <div class="flex items-start justify-between">
+                      <div class="flex-1">
+                        <a href="${d.url}" target="_blank" class="font-medium text-blue-600 hover:underline">${d.title || 'Untitled'}</a>
+                        <div class="text-sm text-gray-500 mt-1">
+                          ${d.contentType ? `<span class="bg-gray-100 px-2 py-0.5 rounded mr-2">${d.contentType}</span>` : ''}
+                          ${d.fiscalYear ? `FY${d.fiscalYear}` : ''}
+                          ${d.chunkCount ? ` • ${d.chunkCount} chunks` : ''}
+                        </div>
+                        ${d.summary ? `<p class="text-sm text-gray-600 mt-2 line-clamp-2">${d.summary}</p>` : ''}
+                      </div>
+                    </div>
+                  </div>
+                `).join('')}
+              </div>
+            ` : `<div class="text-gray-500 text-sm">No documents found</div>`}
+          </div>
+
+          <!-- Projects Section -->
+          <div>
+            <h3 class="text-lg font-semibold text-gray-900 mb-3">📋 Projects (${data.projects.length})</h3>
+            ${data.projects.length > 0 ? `
+              <div class="space-y-2">
+                ${data.projects.map(p => `
+                  <div onclick="loadProjectDetail('${p.id}')" class="bg-white rounded-lg border border-gray-200 p-4 cursor-pointer card-hover">
+                    <div class="flex items-start justify-between">
+                      <div class="flex-1">
+                        <div class="flex items-center gap-2 mb-1">
+                          <span class="font-medium text-gray-900">${p.title}</span>
+                          ${getPhaseBadge(p.phase)}
+                        </div>
+                        ${p.description ? `<p class="text-sm text-gray-600 line-clamp-2">${p.description}</p>` : ''}
+                      </div>
+                      <div class="text-right text-sm">
+                        ${p.estimatedValue ? `<div class="text-green-600 font-medium">$${Number(p.estimatedValue).toLocaleString()}</div>` : ''}
+                        ${p.fiscalYear ? `<div class="text-gray-400">FY${p.fiscalYear}</div>` : ''}
+                      </div>
+                    </div>
+                  </div>
+                `).join('')}
+              </div>
+            ` : `<div class="text-gray-500 text-sm">No projects found</div>`}
+          </div>
+        `;
+
+        document.getElementById('entityDetail').innerHTML = html;
+      } catch (error) {
+        document.getElementById('entityDetail').innerHTML = `
+          <div class="text-center py-8 text-red-500">Failed to load entity details</div>
+        `;
+      }
+    }
+
+    // Load Projects
+    async function loadProjects() {
+      const phase = document.getElementById('projectPhaseFilter').value;
+      const params = new URLSearchParams();
+      if (phase) params.set('phase', phase);
+
+      try {
+        const response = await fetch('/api/projects?' + params.toString());
+        const data = await response.json();
+
+        document.getElementById('projectStats').textContent = `${data.total} projects found`;
+
+        if (data.projects.length === 0) {
+          document.getElementById('projectsList').innerHTML = `
+            <div class="text-center py-8 text-gray-500">No projects found</div>
+          `;
+          return;
+        }
+
+        const html = data.projects.map(p => `
+          <div onclick="loadProjectDetail('${p.id}')" class="bg-white rounded-lg border border-gray-200 p-4 cursor-pointer card-hover">
+            <div class="flex items-start justify-between">
+              <div class="flex-1">
+                <div class="flex items-center gap-2 mb-1">
+                  <span class="font-semibold text-gray-900">${p.title}</span>
+                  ${getPhaseBadge(p.phase)}
+                </div>
+                <div class="text-sm text-gray-500 mb-2">
+                  ${p.entityName ? `<span class="text-blue-600">${p.entityName}</span>` : ''}
+                  ${p.category ? ` • ${p.category}` : ''}
+                </div>
+                ${p.description ? `<p class="text-sm text-gray-600 line-clamp-2">${p.description}</p>` : ''}
+              </div>
+              <div class="text-right text-sm ml-4">
+                ${p.estimatedValue ? `<div class="text-green-600 font-medium">$${Number(p.estimatedValue).toLocaleString()}</div>` : ''}
+                ${p.fiscalYear ? `<div class="text-gray-400">FY${p.fiscalYear}</div>` : ''}
+              </div>
+            </div>
+          </div>
+        `).join('');
+
+        document.getElementById('projectsList').innerHTML = html;
+      } catch (error) {
+        document.getElementById('projectsList').innerHTML = `
+          <div class="text-center py-8 text-red-500">Failed to load projects</div>
+        `;
+      }
+    }
+
+    // Load Project Detail
+    async function loadProjectDetail(projectId) {
+      showView('project-detail');
+      document.getElementById('projectDetail').innerHTML = `<div class="text-center py-8 text-gray-500">Loading...</div>`;
+
+      try {
+        const response = await fetch('/api/projects/' + projectId);
+        const data = await response.json();
+
+        const p = data.project;
+        let html = `
+          <div class="bg-white rounded-lg border border-gray-200 p-6 mb-6">
+            <div class="flex items-start justify-between mb-4">
+              <div>
+                <h2 class="text-2xl font-bold text-gray-900 mb-2">${p.title}</h2>
+                <div class="flex items-center gap-2 mb-3">
+                  ${getPhaseBadge(p.phase)}
+                  ${p.entityName ? `<span class="text-blue-600 cursor-pointer hover:underline" onclick="loadEntityDetailByName('${p.orgId}')">${p.entityName}</span>` : ''}
+                  ${p.category ? `<span class="text-gray-500">• ${p.category}</span>` : ''}
+                </div>
+                ${p.description ? `<p class="text-gray-600">${p.description}</p>` : ''}
+              </div>
+              <div class="text-right">
+                ${p.estimatedValue ? `<div class="text-2xl text-green-600 font-bold">$${Number(p.estimatedValue).toLocaleString()}</div>` : ''}
+                ${p.fiscalYear ? `<div class="text-gray-500">FY${p.fiscalYear}</div>` : ''}
+              </div>
+            </div>
+
+            ${p.phaseReasoning ? `
+              <div class="mt-4 p-3 bg-gray-50 rounded-lg">
+                <div class="text-sm font-medium text-gray-700 mb-1">Phase Reasoning (${(p.phaseConfidence * 100).toFixed(0)}% confidence)</div>
+                <div class="text-sm text-gray-600">${p.phaseReasoning}</div>
+              </div>
+            ` : ''}
+
+            ${p.timelineNotes ? `
+              <div class="mt-4">
+                <div class="text-sm font-medium text-gray-700 mb-1">Timeline Notes</div>
+                <div class="text-sm text-gray-600">${p.timelineNotes}</div>
+              </div>
+            ` : ''}
+
+            ${p.contacts && p.contacts.length > 0 ? `
+              <div class="mt-4">
+                <div class="text-sm font-medium text-gray-700 mb-2">Contacts</div>
+                <div class="space-y-2">
+                  ${p.contacts.map(c => `
+                    <div class="text-sm p-2 bg-gray-50 rounded">
+                      <div class="font-medium">${c.name}${c.title ? ` - ${c.title}` : ''}</div>
+                      ${c.email ? `<div class="text-blue-600">${c.email}</div>` : ''}
+                      ${c.phone ? `<div class="text-gray-600">${c.phone}</div>` : ''}
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+            ` : ''}
+
+            ${p.keywords && p.keywords.length > 0 ? `
+              <div class="mt-4 flex flex-wrap gap-1">
+                ${p.keywords.map(k => `<span class="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">${k}</span>`).join('')}
+              </div>
+            ` : ''}
+          </div>
+
+          <!-- Source Documents -->
+          ${data.sourceDocuments && data.sourceDocuments.length > 0 ? `
+            <div class="mb-6">
+              <h3 class="text-lg font-semibold text-gray-900 mb-3">📄 Source Documents</h3>
+              <div class="space-y-2">
+                ${data.sourceDocuments.map(d => `
+                  <div class="bg-white rounded-lg border border-gray-200 p-4">
+                    <a href="${d.url}" target="_blank" class="font-medium text-blue-600 hover:underline">${d.title || 'Document'}</a>
+                    ${d.summary ? `<p class="text-sm text-gray-600 mt-1">${d.summary}</p>` : ''}
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          ` : ''}
+
+          <!-- Evidence -->
+          ${data.evidence && data.evidence.length > 0 ? `
+            <div>
+              <h3 class="text-lg font-semibold text-gray-900 mb-3">🔍 Evidence Excerpts</h3>
+              <div class="space-y-2">
+                ${data.evidence.map(e => `
+                  <div class="bg-white rounded-lg border border-gray-200 p-4">
+                    <div class="text-sm text-gray-500 mb-1">
+                      ${e.evidenceType} • ${(e.confidence * 100).toFixed(0)}% confidence
+                      ${e.documentTitle ? ` • from "${e.documentTitle}"` : ''}
+                    </div>
+                    <blockquote class="text-gray-700 italic border-l-4 border-blue-300 pl-3">"${e.excerpt}"</blockquote>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          ` : ''}
+        `;
+
+        document.getElementById('projectDetail').innerHTML = html;
+      } catch (error) {
+        document.getElementById('projectDetail').innerHTML = `
+          <div class="text-center py-8 text-red-500">Failed to load project details</div>
+        `;
+      }
+    }
+
+    function loadEntityDetailByName(orgId) {
+      loadEntityDetail(orgId);
+    }
+
+    // Chat functionality
+    const chatContainer = document.getElementById('chatContainer');
+    const messageInput = document.getElementById('messageInput');
+    const sendButton = document.getElementById('sendButton');
+
+    async function sendMessage(e) {
+      e.preventDefault();
+      const message = messageInput.value.trim();
+      if (!message) return;
+
+      addMessage(message, 'user');
+      messageInput.value = '';
+      sendButton.disabled = true;
+
+      const typingId = addTypingIndicator();
+
+      try {
+        const response = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ query: message })
+        });
+
+        const data = await response.json();
+        removeTypingIndicator(typingId);
+
+        if (data.error) {
+          addMessage('Sorry, something went wrong. Please try again.', 'assistant', { error: true });
+        } else {
+          addMessage(data.answer, 'assistant', {
+            sources: data.sources,
+            projects: data.projects
+          });
+        }
+      } catch (error) {
+        removeTypingIndicator(typingId);
+        addMessage('Sorry, I couldn\'t connect to the server. Please try again.', 'assistant', { error: true });
+      }
+
+      sendButton.disabled = false;
+    }
+
+    function askQuestion(question) {
+      messageInput.value = question;
+      sendMessage(new Event('submit'));
+    }
+
+    function addMessage(content, role, meta = {}) {
+      const messageDiv = document.createElement('div');
+      messageDiv.className = role === 'user' ? 'flex justify-end' : 'flex justify-start';
+
+      const bubble = document.createElement('div');
+      bubble.className = role === 'user'
+        ? 'bg-blue-600 text-white rounded-lg px-4 py-3 max-w-[80%]'
+        : `bg-white border border-gray-200 rounded-lg px-4 py-3 max-w-[90%] ${meta.error ? 'border-red-300 bg-red-50' : ''}`;
+
+      if (role === 'user') {
+        bubble.textContent = content;
+      } else {
+        bubble.innerHTML = `<div class="prose prose-sm">${marked.parse(content)}</div>`;
+
+        if (meta.sources && meta.sources.length > 0) {
+          const sourcesDiv = document.createElement('div');
+          sourcesDiv.className = 'mt-4 pt-4 border-t border-gray-200';
+          sourcesDiv.innerHTML = `
+            <p class="text-xs font-medium text-gray-500 mb-2">📄 Sources</p>
+            <div class="flex flex-wrap gap-2">
+              ${meta.sources.slice(0, 3).map(s => `
+                <a href="${s.url}" target="_blank" class="inline-flex items-center gap-1 px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded text-xs text-gray-700">
+                  <span class="truncate max-w-[200px]">${s.title || 'Document'}</span>
+                  <span class="text-gray-400">↗</span>
+                </a>
+              `).join('')}
+            </div>
+          `;
+          bubble.appendChild(sourcesDiv);
+        }
+
+        if (meta.projects && meta.projects.length > 0) {
+          const projectsDiv = document.createElement('div');
+          projectsDiv.className = 'mt-4 pt-4 border-t border-gray-200';
+          projectsDiv.innerHTML = `
+            <p class="text-xs font-medium text-gray-500 mb-2">🎯 Related Projects</p>
+            <div class="space-y-2">
+              ${meta.projects.slice(0, 3).map(p => `
+                <div onclick="loadProjectDetail('${p.id}')" class="flex items-center gap-2 p-2 bg-gray-50 rounded text-sm cursor-pointer hover:bg-gray-100">
+                  <span>${p.phaseEmoji}</span>
+                  <span class="font-medium">${p.title}</span>
+                  <span class="text-xs text-gray-500 bg-gray-200 px-2 py-0.5 rounded">${p.phaseLabel}</span>
+                  ${p.estimatedValue ? `<span class="text-xs text-green-600">$${Number(p.estimatedValue).toLocaleString()}</span>` : ''}
+                </div>
+              `).join('')}
+            </div>
+          `;
+          bubble.appendChild(projectsDiv);
+        }
+      }
+
+      messageDiv.appendChild(bubble);
+      chatContainer.appendChild(messageDiv);
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+
+    function addTypingIndicator() {
+      const id = 'typing-' + Date.now();
+      const div = document.createElement('div');
+      div.id = id;
+      div.className = 'flex justify-start';
+      div.innerHTML = `
+        <div class="bg-white border border-gray-200 rounded-lg px-4 py-3">
+          <div class="typing-indicator flex gap-1">
+            <span class="w-2 h-2 bg-gray-400 rounded-full"></span>
+            <span class="w-2 h-2 bg-gray-400 rounded-full"></span>
+            <span class="w-2 h-2 bg-gray-400 rounded-full"></span>
+          </div>
+        </div>
+      `;
+      chatContainer.appendChild(div);
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+      return id;
+    }
+
+    function removeTypingIndicator(id) {
+      const el = document.getElementById(id);
+      if (el) el.remove();
+    }
+
+    // Enter to send
+    messageInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage(e);
+      }
+    });
+  </script>
+</body>
+</html>

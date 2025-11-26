@@ -1,0 +1,6 @@
+{
+  "url": "https://example-city.gov/documents/budget-2024.pdf",
+  "org_id": "example-entity-001",
+  "url_id": "budget-2024",
+  "text": "# City of Example - FY2024 Budget Summary\n\n## Executive Summary\nThe City of Example presents its Fiscal Year 2024 budget totaling $45.2 million, representing a 3.5% increase from the prior year.\n\n## Capital Improvement Projects\n\n### Technology Infrastructure Upgrade - $2.1M\nThe IT Department has requested funding for a comprehensive network infrastructure modernization project. This includes:\n- Replacement of aging network switches and routers\n- Implementation of new cybersecurity measures\n- Cloud migration for critical city services\n- New citizen portal development\n\n### Water Treatment Plant Expansion - $8.5M\nPhase 2 of the water treatment facility expansion to increase capacity by 40%.\n\n### Public Safety Radio System - $1.8M\nUpgrade to P25 digital radio system for police and fire departments.\n\n## Department Budgets\n\n### Public Works - $12.3M\n- Street maintenance: $4.2M\n- Parks and recreation: $3.1M\n- Fleet management: $2.8M\n- Facilities: $2.2M\n\n### Public Safety - $15.8M\n- Police department: $9.2M\n- Fire department: $6.6M\n\n### Administration - $5.4M\n- City administration: $2.1M\n- Finance: $1.8M\n- Human resources: $1.5M"
+}
