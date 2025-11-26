@@ -9,6 +9,9 @@ COPY package*.json ./
 # Install dependencies
 RUN npm ci
 
+# Install Playwright browsers (Chromium only to save space)
+RUN npx playwright install chromium
+
 # Copy application code
 COPY . .
 
