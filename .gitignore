@@ -38,5 +38,4 @@ playwright/.cache/
 # Private docs (not for public repo)
 docs/req.md
 docs/req-2.md
-README.md
 data/
